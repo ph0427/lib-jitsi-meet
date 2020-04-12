@@ -232,7 +232,7 @@ export default class ChatRoom extends Listenable {
      * we want to leave the room.
      */
     doLeave() {
-        logger.log('do leave', this.myroomjid);
+        logger.log('Patrick: do leave', this.myroomjid);
         const pres = $pres({ to: this.myroomjid,
             type: 'unavailable' });
 
