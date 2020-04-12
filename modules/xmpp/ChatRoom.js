@@ -795,6 +795,7 @@ export default class ChatRoom extends Listenable {
      * @param from
      */
     onPresenceUnavailable(pres, from) {
+        logger.info('Patrick: ', Object.keys(this.members));
         // ignore presence
         logger.info('Patrick3: onPresenceUnavailable: ', pres);
         logger.info('Patrick3: from: ', from);
@@ -843,7 +844,7 @@ export default class ChatRoom extends Listenable {
         logger.info('Patrick8: ', membersKeys);
 
         if (isKick) {
-            const actorSelect
+            let actorSelect
                 = $(pres)
                 .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
 
@@ -851,6 +852,13 @@ export default class ChatRoom extends Listenable {
 
             if (actorSelect.length) {
                 actorNick = actorSelect.attr('nick');
+            } else {
+                actorSelect
+                = $(pres)
+                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item>actor');
+                if (actorSelect.length) {
+                    actorNick = actorSelect.attr('nick');
+                }
             }
             logger.info('Patrick21: ', actorNick);
             logger.info('Patrick22: ', membersKeys.find(jid => Strophe.getResourceFromJid(jid) === actorNick));
