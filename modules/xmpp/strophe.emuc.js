@@ -113,7 +113,8 @@ class MucConnectionPlugin extends ConnectionPluginListenable {
         logger.info('Patrick1: onPresenceUnavailable: ', pres);
         const from = pres.getAttribute('from');
         const room = this.rooms[Strophe.getBareJidFromJid(from)];
-        logger.info('Patrick2: onPresenceUnavailable: ${from}, ${room}');
+        logger.info('Patrick2: ', from);
+        logger.info('Patrick2: ', room);
 
         if (!room) {
             return true;

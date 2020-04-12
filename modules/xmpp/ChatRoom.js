@@ -796,7 +796,9 @@ export default class ChatRoom extends Listenable {
      */
     onPresenceUnavailable(pres, from) {
         // ignore presence
-        logger.info('Patrick3: onPresenceUnavailable: ${from}, ${from}');
+        logger.info('Patrick3: onPresenceUnavailable: ', pres);
+        logger.info('Patrick3: from: ', from);
+        logger.info('Patrick4: ', $(pres).find('>ignore[xmlns="http://jitsi.org/jitmeet/"]'));
         if ($(pres).find('>ignore[xmlns="http://jitsi.org/jitmeet/"]').length) {
             return true;
         }
