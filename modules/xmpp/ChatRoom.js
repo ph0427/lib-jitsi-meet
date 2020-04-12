@@ -802,7 +802,7 @@ export default class ChatRoom extends Listenable {
         if ($(pres).find('>ignore[xmlns="http://jitsi.org/jitmeet/"]').length) {
             return true;
         }
-
+        logger.info('Patrick5: ', $(pres).find('>x[xmlns="http://jabber.org/protocol/muc#user"]' + '>destroy'));
         // room destroyed ?
         if ($(pres).find('>x[xmlns="http://jabber.org/protocol/muc#user"]'
             + '>destroy').length) {
@@ -811,6 +811,7 @@ export default class ChatRoom extends Listenable {
                 = $(pres).find(
                     '>x[xmlns="http://jabber.org/protocol/muc#user"]'
                         + '>destroy>reason');
+            logger.info('Patrick9: ', reasonSelect);
 
             if (reasonSelect.length) {
                 reason = reasonSelect.text();
@@ -836,6 +837,10 @@ export default class ChatRoom extends Listenable {
                         + '>status[code="307"]')
                 .length;
         const membersKeys = Object.keys(this.members);
+
+        logger.info('Patrick6: ', isSelfPresence);
+        logger.info('Patrick7: ', isKick);
+        logger.info('Patrick8: ', membersKeys);
 
         if (isKick) {
             const actorSelect
@@ -863,18 +868,21 @@ export default class ChatRoom extends Listenable {
         }
 
         if (!isSelfPresence) {
+            logger.info('Patrick10: ');
             delete this.members[from];
             this.onParticipantLeft(from, false);
         } else if (membersKeys.length > 0) {
             // If the status code is 110 this means we're leaving and we would
             // like to remove everyone else from our view, so we trigger the
             // event.
+            logger.info('Patrick11: ');
             membersKeys.forEach(jid => {
                 const member = this.members[jid];
 
                 delete this.members[jid];
                 this.onParticipantLeft(jid, member.isFocus);
             });
+            logger.info('Patrick12: ');
             this.connection.emuc.doLeave(this.roomjid);
 
             // we fire muc_left only if this is not a kick,

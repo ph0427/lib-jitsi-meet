@@ -71,6 +71,7 @@ class MucConnectionPlugin extends ConnectionPluginListenable {
      * @param jid
      */
     doLeave(jid) {
+        logger.info('Patrick12: doLeave: ', jid);
         this.eventEmitter.emit(
             XMPPEvents.EMUC_ROOM_REMOVED, this.rooms[jid]);
         delete this.rooms[jid];
