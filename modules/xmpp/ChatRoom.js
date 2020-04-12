@@ -845,7 +845,7 @@ export default class ChatRoom extends Listenable {
         if (isKick) {
             const actorSelect
                 = $(pres)
-                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item>actor');
+                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
 
             let actorNick;
 
