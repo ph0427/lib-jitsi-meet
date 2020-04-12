@@ -844,20 +844,22 @@ export default class ChatRoom extends Listenable {
         logger.info('Patrick8: ', membersKeys);
 
         if (isKick) {
-            let actorSelect
+            const actorSelect
                 = $(pres)
                 .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
 
             let actorNick;
+            logger.info('Patrick8-1: ', actorSelect);
 
             if (actorSelect.length) {
                 actorNick = actorSelect.attr('nick');
             } else {
-                actorSelect
+                const actorSelect1
                 = $(pres)
                 .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item>actor');
-                if (actorSelect.length) {
-                    actorNick = actorSelect.attr('nick');
+                logger.info('Patrick8-2: ', actorSelect1);
+                if (actorSelect1.length) {
+                    actorNick = actorSelect1.attr('nick');
                 }
             }
             logger.info('Patrick21: ', actorNick);
