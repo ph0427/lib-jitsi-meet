@@ -824,12 +824,12 @@ export default class ChatRoom extends Listenable {
         }
 
         // Status code 110 indicates that this notification is "self-presence".
-        const isSelfPresence
-            = $(pres)
-                .find(
-                    '>x[xmlns="http://jabber.org/protocol/muc#user"]>'
-                        + 'status[code="110"]')
-                .length;
+        const isSelfPresence = 1;
+            // = $(pres)
+            //     .find(
+            //         '>x[xmlns="http://jabber.org/protocol/muc#user"]>'
+            //             + 'status[code="110"]')
+            //     .length;
         const isKick
             = $(pres)
                 .find(
