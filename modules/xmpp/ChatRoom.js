@@ -6,11 +6,11 @@ import { $iq, $msg, $pres, Strophe } from 'strophe.js';
 import GlobalOnErrorHandler from '../util/GlobalOnErrorHandler';
 import * as JitsiTranscriptionStatus from '../../JitsiTranscriptionStatus';
 import Listenable from '../util/Listenable';
+import Settings from '../settings/Settings';
 import * as MediaType from '../../service/RTC/MediaType';
 import XMPPEvents from '../../service/xmpp/XMPPEvents';
 
 import Moderator from './moderator';
-import XmppConnection from './XmppConnection';
 
 const logger = getLogger(__filename);
 
@@ -89,7 +89,7 @@ export default class ChatRoom extends Listenable {
 
     /**
      *
-     * @param {XmppConnection} connection - The XMPP connection instance.
+     * @param connection
      * @param jid
      * @param password
      * @param XMPP
@@ -109,7 +109,6 @@ export default class ChatRoom extends Listenable {
         this.members = {};
         this.presMap = {};
         this.presHandlers = {};
-        this._removeConnListeners = [];
         this.joined = false;
         this.role = null;
         this.focusMucJid = null;
@@ -141,10 +140,10 @@ export default class ChatRoom extends Listenable {
         this.presMap.xns = 'http://jabber.org/protocol/muc';
         this.presMap.nodes = [];
 
-        if (options.statsId) {
+        if (options.enableStatsID) {
             this.presMap.nodes.push({
                 'tagName': 'stats-id',
-                'value': options.statsId
+                'value': Settings.callStatsUserName
             });
         }
 
@@ -184,11 +183,6 @@ export default class ChatRoom extends Listenable {
 
             preJoin.then(() => {
                 this.sendPresence(true);
-                this._removeConnListeners.push(
-                    this.connection.addEventListener(
-                        XmppConnection.Events.CONN_STATUS_CHANGED,
-                        this.onConnStatusChanged.bind(this))
-                );
                 resolve();
             });
         });
@@ -201,7 +195,7 @@ export default class ChatRoom extends Listenable {
     sendPresence(fromJoin) {
         const to = this.presMap.to;
 
-        if (!this.connection || !this.connection.connected || !to || (!this.joined && !fromJoin)) {
+        if (!to || (!this.joined && !fromJoin)) {
             // Too early to send presence - not initialized
             return;
         }
@@ -238,7 +232,7 @@ export default class ChatRoom extends Listenable {
      * we want to leave the room.
      */
     doLeave() {
-        logger.log('do leave', this.myroomjid);
+        logger.log('Patrick: do leave', this.myroomjid);
         const pres = $pres({ to: this.myroomjid,
             type: 'unavailable' });
 
@@ -256,8 +250,7 @@ export default class ChatRoom extends Listenable {
         // top of the send queue. We flush() once more after sending/queuing the
         // unavailable presence in order to attempt to have it sent as soon as
         // possible.
-        // FIXME do not use Strophe.Connection in the ChatRoom directly
-        !this.connection.isUsingWebSocket && this.connection.flush();
+        this.connection.flush();
         this.connection.send(pres);
         this.connection.flush();
     }
@@ -285,35 +278,10 @@ export default class ChatRoom extends Listenable {
                 this.eventEmitter.emit(XMPPEvents.MUC_LOCK_CHANGED, locked);
                 this.locked = locked;
             }
-
-            const meetingIdValEl
-                = $(result).find('>query>x[type="result"]>field[var="muc#roominfo_meetingId"]>value');
-
-            if (meetingIdValEl.length) {
-                this.setMeetingId(meetingIdValEl.text());
-            } else {
-                logger.trace('No meeting ID from backend');
-            }
         }, error => {
             GlobalOnErrorHandler.callErrorHandler(error);
             logger.error('Error getting room info: ', error);
         });
-    }
-
-    /**
-     * Sets the meeting unique Id (received from the backend).
-     *
-     * @param {string} meetingId - The new meetings id.
-     * @returns {void}
-     */
-    setMeetingId(meetingId) {
-        if (this.meetingId !== meetingId) {
-            if (this.meetingId) {
-                logger.warn(`Meeting Id changed from:${this.meetingId} to:${meetingId}`);
-            }
-            this.meetingId = meetingId;
-            this.eventEmitter.emit(XMPPEvents.MEETING_ID_SET, meetingId);
-        }
     }
 
     /**
@@ -362,18 +330,6 @@ export default class ChatRoom extends Listenable {
             GlobalOnErrorHandler.callErrorHandler(error);
             logger.error('Error getting room configuration form: ', error);
         });
-    }
-
-    /**
-     * Handles Xmpp Connection status updates.
-     *
-     * @param {Strophe.Status} status - The Strophe connection status.
-     */
-    onConnStatusChanged(status) {
-        // Send cached presence when the XMPP connection is re-established.
-        if (status === XmppConnection.Status.CONNECTED) {
-            this.sendPresence();
-        }
     }
 
     /**
@@ -523,10 +479,6 @@ export default class ChatRoom extends Listenable {
                 this.sendPresence();
 
                 this.eventEmitter.emit(XMPPEvents.MUC_JOINED);
-
-                // Now let's check the disco-info to retrieve the
-                // meeting Id if any
-                this.discoRoomInfo();
             }
         } else if (jid === undefined) {
             logger.info('Ignoring member with undefined JID');
@@ -843,6 +795,8 @@ export default class ChatRoom extends Listenable {
      * @param from
      */
     onPresenceUnavailable(pres, from) {
+        logger.info('Patrick: onPresenceUnavailable');
+        logger.info(`Patrick: onPresenceUnavailable: {$pres} ${from}`);
         // ignore presence
         if ($(pres).find('>ignore[xmlns="http://jitsi.org/jitmeet/"]').length) {
             return true;
@@ -980,7 +934,11 @@ export default class ChatRoom extends Listenable {
         }
 
         if (from === this.roomjid
-                && $(msg).find('>x[xmlns="http://jabber.org/protocol/muc#user"]>status[code="104"]').length) {
+                && $(msg)
+                    .find(
+                        '>x[xmlns="http://jabber.org/protocol/muc#user"]'
+                            + '>status[code="104"]')
+                    .length) {
             this.discoRoomInfo();
         }
         const jsonMessage = $(msg).find('>json-message').text();
@@ -1117,13 +1075,6 @@ export default class ChatRoom extends Listenable {
                         .t(key)
                         .up()
                         .up();
-                    formsubmit
-                        .c('field',
-                             { 'var': 'muc#roomconfig_passwordprotectedroom' })
-                        .c('value')
-                        .t(key === null || key.length === 0 ? '0' : '1')
-                        .up()
-                        .up();
 
                     // Fixes a bug in prosody 0.9.+
                     // https://prosody.im/issues/issue/373
@@ -1134,6 +1085,7 @@ export default class ChatRoom extends Listenable {
                         .up()
                         .up();
 
+                    // FIXME: is muc#roomconfig_passwordprotectedroom required?
                     this.connection.sendIQ(formsubmit, onSuccess, onError);
                 } else {
                     onNotSupported();
@@ -1293,9 +1245,9 @@ export default class ChatRoom extends Listenable {
      */
     sendAudioInfoPresence(mute, callback) {
         this.addAudioInfoToPresence(mute);
-
-        // FIXME resend presence on CONNECTED
-        this.sendPresence();
+        if (this.connection) {
+            this.sendPresence();
+        }
         if (callback) {
             callback();
         }
@@ -1321,6 +1273,9 @@ export default class ChatRoom extends Listenable {
      */
     sendVideoInfoPresence(mute) {
         this.addVideoInfoToPresence(mute);
+        if (!this.connection) {
+            return;
+        }
         this.sendPresence();
     }
 
@@ -1412,15 +1367,6 @@ export default class ChatRoom extends Listenable {
     }
 
     /**
-     * Returns the meeting unique ID if any came from backend.
-     *
-     * @returns {string} - The meeting ID.
-     */
-    getMeetingId() {
-        return this.meetingId;
-    }
-
-    /**
      * Mutes remote participant.
      * @param jid of the participant
      * @param mute
@@ -1478,9 +1424,6 @@ export default class ChatRoom extends Listenable {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => onMucLeft(true), 5000);
             const eventEmitter = this.eventEmitter;
-
-            this._removeConnListeners.forEach(remove => remove());
-            this._removeConnListeners = [];
 
             /**
              *
