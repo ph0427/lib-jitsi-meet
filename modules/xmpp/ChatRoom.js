@@ -846,7 +846,7 @@ export default class ChatRoom extends Listenable {
         if (isKick) {
             const actorSelect
                 = $(pres)
-                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
+                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item>actor');
 
             let actorNick;
             logger.info('Patrick8-1: ', actorSelect);
@@ -856,7 +856,7 @@ export default class ChatRoom extends Listenable {
             } else {
                 const actorSelect1
                 = $(pres)
-                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item>actor');
+                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
                 logger.info('Patrick8-2: ', actorSelect1);
                 if (actorSelect1.length) {
                     actorNick = actorSelect1.attr('nick');
@@ -895,7 +895,7 @@ export default class ChatRoom extends Listenable {
                 delete this.members[jid];
                 this.onParticipantLeft(jid, member.isFocus);
             });
-            logger.info('Patrick12: ');
+            logger.info('Patrick12: ', this.roomjid);
             this.connection.emuc.doLeave(this.roomjid);
 
             // we fire muc_left only if this is not a kick,
