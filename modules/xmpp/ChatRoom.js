@@ -859,18 +859,20 @@ export default class ChatRoom extends Listenable {
                 }
             }
             logger.info('Patrick7: ', actorNick);
+            const existUsers = membersKeys.find(jid => Strophe.getResourceFromJid(jid) !== 'focus');
+            logger.info('Patrick7-1: ', existUsers);
 
             // if no member is found this is the case we had kicked someone
             // and we are not in the list of members
-            if (membersKeys.find(jid => Strophe.getResourceFromJid(jid) === actorNick)) {
-                logger.info('Patrick8: ', actorNick);
+            if (existUsers.length) {
+                logger.info('Patrick8: ', existUsers[0]);
                 // we first fire the kicked so we can show the participant
                 // who kicked, before notifying that participant left
                 // we fire kicked for us and for any participant kicked
                 this.eventEmitter.emit(
                     XMPPEvents.KICKED,
                     isSelfPresence,
-                    actorNick,
+                    existUsers[0],
                     Strophe.getResourceFromJid(from));
             }
         }
