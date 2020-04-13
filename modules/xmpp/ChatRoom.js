@@ -872,7 +872,7 @@ export default class ChatRoom extends Listenable {
                 this.eventEmitter.emit(
                     XMPPEvents.KICKED,
                     isSelfPresence,
-                    existUsers,
+                    Strophe.getResourceFromJid(existUsers),
                     Strophe.getResourceFromJid(from));
             }
         }
