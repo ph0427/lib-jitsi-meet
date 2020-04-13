@@ -840,12 +840,12 @@ export default class ChatRoom extends Listenable {
         logger.info('Patrick4: ', isKick);
         logger.info('Patrick5: ', membersKeys);
 
+        let actorNick;
         if (isKick) {
             const actorSelect
                 = $(pres)
                 .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item>actor');
 
-            let actorNick;
 
             if (actorSelect.length) {
                 actorNick = actorSelect.attr('nick');
