@@ -853,17 +853,12 @@ export default class ChatRoom extends Listenable {
                 const actorSelect1
                 = $(pres)
                 .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
-                logger.info('Patrick8-2: ', actorSelect1);
+                logger.info('Patrick6: ', actorSelect1);
                 if (actorSelect1.length) {
                     actorNick = actorSelect1.attr('nick');
                 }
             }
-            logger.info('Patrick6: ', actorNick);
-            logger.info('Patrick7: ', membersKeys.find(jid => Strophe.getResourceFromJid(jid) === actorNick));
-
-            if (actorSelect.length) {
-                actorNick = actorSelect.attr('nick');
-            }
+            logger.info('Patrick7: ', actorNick);
 
             // if no member is found this is the case we had kicked someone
             // and we are not in the list of members
