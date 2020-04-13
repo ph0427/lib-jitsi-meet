@@ -795,6 +795,9 @@ export default class ChatRoom extends Listenable {
      * @param from
      */
     onPresenceUnavailable(pres, from) {
+        logger.info('Patrick1: ', from);
+        logger.info('Patrick2: ', pres);
+
         // ignore presence
         if ($(pres).find('>ignore[xmlns="http://jitsi.org/jitmeet/"]').length) {
             return true;
@@ -833,6 +836,9 @@ export default class ChatRoom extends Listenable {
                         + '>status[code="307"]')
                 .length;
         const membersKeys = Object.keys(this.members);
+        logger.info('Patrick3: ', isSelfPresence);
+        logger.info('Patrick4: ', isKick);
+        logger.info('Patrick5: ', membersKeys);
 
         if (isKick) {
             const actorSelect
@@ -843,11 +849,26 @@ export default class ChatRoom extends Listenable {
 
             if (actorSelect.length) {
                 actorNick = actorSelect.attr('nick');
+            } else {
+                const actorSelect1
+                = $(pres)
+                .find('>x[xmlns="http://jabber.org/protocol/muc#user"]>item');
+                logger.info('Patrick8-2: ', actorSelect1);
+                if (actorSelect1.length) {
+                    actorNick = actorSelect1.attr('nick');
+                }
+            }
+            logger.info('Patrick6: ', actorNick);
+            logger.info('Patrick7: ', membersKeys.find(jid => Strophe.getResourceFromJid(jid) === actorNick));
+
+            if (actorSelect.length) {
+                actorNick = actorSelect.attr('nick');
             }
 
             // if no member is found this is the case we had kicked someone
             // and we are not in the list of members
             if (membersKeys.find(jid => Strophe.getResourceFromJid(jid) === actorNick)) {
+                logger.info('Patrick8: ', actorNick);
                 // we first fire the kicked so we can show the participant
                 // who kicked, before notifying that participant left
                 // we fire kicked for us and for any participant kicked
@@ -860,9 +881,11 @@ export default class ChatRoom extends Listenable {
         }
 
         if (!isSelfPresence) {
+            logger.info('Patrick9: ', actorNick);
             delete this.members[from];
             this.onParticipantLeft(from, false);
         } else if (membersKeys.length > 0) {
+            logger.info('Patrick10: ', actorNick);
             // If the status code is 110 this means we're leaving and we would
             // like to remove everyone else from our view, so we trigger the
             // event.
@@ -872,11 +895,13 @@ export default class ChatRoom extends Listenable {
                 delete this.members[jid];
                 this.onParticipantLeft(jid, member.isFocus);
             });
+            logger.info('Patrick11: ', this.roomjid);
             this.connection.emuc.doLeave(this.roomjid);
 
             // we fire muc_left only if this is not a kick,
             // kick has both statuses 110 and 307.
             if (!isKick) {
+                logger.info('Patrick12: ', this.roomjid);
                 this.eventEmitter.emit(XMPPEvents.MUC_LEFT);
             }
         }
