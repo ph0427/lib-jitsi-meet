@@ -865,14 +865,14 @@ export default class ChatRoom extends Listenable {
             // if no member is found this is the case we had kicked someone
             // and we are not in the list of members
             if (existUsers.length) {
-                logger.info('Patrick8: ', existUsers[0]);
+                logger.info('Patrick8: ', existUsers);
                 // we first fire the kicked so we can show the participant
                 // who kicked, before notifying that participant left
                 // we fire kicked for us and for any participant kicked
                 this.eventEmitter.emit(
                     XMPPEvents.KICKED,
                     isSelfPresence,
-                    existUsers[0],
+                    existUsers,
                     Strophe.getResourceFromJid(from));
             }
         }
