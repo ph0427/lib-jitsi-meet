@@ -883,7 +883,7 @@ export default class ChatRoom extends Listenable {
             logger.info('Patrick9: ', actorNick);
             delete this.members[from];
             this.onParticipantLeft(from, false);
-        } else if (membersKeys.length > 0) {
+        } else if (actorNick && membersKeys.length > 0) {
             logger.info('Patrick10: ', actorNick);
             // If the status code is 110 this means we're leaving and we would
             // like to remove everyone else from our view, so we trigger the
